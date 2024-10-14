@@ -25,20 +25,33 @@ function getMovies() {
         .then(resp => resp.json())
         .then(data => {
             for (i = 0; i < data.length; i++) {
-                let li = document.createElement('li')
+                let li = document.createElement(`li`)
                 let listId = data[i].id
-                li.innerHTML = `<li class="film item" id="${data[i].id}"> ${data[i].title} <button id="delbutton${data[i].id}"> Delete</button></li>`
+                li.innerHTML = `<li class="film item" id="${data[i].id}"> ${data[i].title} </li>`
                 li.addEventListener('click', (e) => { getMovieInfo(e.target.id) })
                 list.appendChild(li)
+                
+                
+                //  delete button
+               
+                let btn = document.createElement("button")
+                 btn.id = `${data[i].id}delbutton`
+                btn.innerHTML = `Delete`
+                li.appendChild(btn)
+                btn.addEventListener('click',(e)=>{
+                    e.preventDefault()
+                    deleteMovie(e.target.id)// removes element from db.json file
+                    const parentElement = btn.parentElement// removes element locally on user browser
+                    parentElement.remove();
 
-
+                })
             }
         }
         )
 }
 
 function getMovieInfo(i) {
-    console.log(i)
+    // console.log(i)
     current_id = Number(i)
     fetch(`http://localhost:3000/films/${i}`)
         .then(resp => resp.json())
@@ -70,7 +83,7 @@ buybtn.addEventListener('click', (e) => {
 )
 
 function buytickets() {
-    if (remaining > 0) {
+    if (remaining >0) {
         fetch(`http://localhost:3000/films/${current_id}`, {
             method: 'PATCH',
             headers: {
@@ -78,25 +91,20 @@ function buytickets() {
                 'Accept': 'application/json',
             },
             body: JSON.stringify({
-                tickets_sold: remaining + 1 // Increment tickets sold by 1
+                tickets_sold: remaining + 1 
             })
         })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
             .then(data => {
-                remaining--; // Decrease the available tickets
+                remaining--; 
                 document.getElementById("ticket-num").innerHTML = `${remaining}`;
                
             })
-            .catch(error => {
-                console.error('Error purchasing ticket:', error);
-            });
+            
     } else {
-        document.getElementById("ticket-num").innerHTML = 'Sorry, this showing is sold out!'; // Alert if no tickets are available
+        document.getElementById("buy-ticket").innerHTML = 'SOLD OUT!'; 
+        currentMovie = document.getElementById(`${current_id}`)
+        currentMovie.classList.add('sold-out')
+
     }
 
     fetch(`http://localhost:3000/tickets`, {
@@ -112,3 +120,14 @@ function buytickets() {
     })
 }
 
+function deleteMovie(buttonid){
+    buttonnumber = buttonid.charAt(0)
+    console.log(buttonnumber)
+    fetch(`http://localhost:3000/films/${buttonnumber}`,{
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        },
+    })
+}
