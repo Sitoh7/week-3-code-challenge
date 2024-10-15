@@ -12,14 +12,11 @@ let remaining;
 let currentMovie;
 let delbutton = document.getElementById("buy-ticket")
 document.addEventListener('DOMContentLoaded', (e) => {
-
     getMovies()
     getMovieInfo(1)//The movie with id 1 will be the movie that will be shown when the page first loads
     e.preventDefault()
-    iszero()
-    
-
 })
+
 
 function getMovies() {
     let list = document.getElementById("films")
@@ -32,21 +29,21 @@ function getMovies() {
                 let listId = data[i].id
                 li.id = data[i].id
                 li.innerHTML = `${data[i].title}`
-                li.addEventListener('click', (e) => { getMovieInfo(e.target.id) })
+                li.addEventListener('click', (e) => { getMovieInfo(e.target.id) })// When a movie is cliked on the side menu its details are retrieved from the db.json file and displayed to the user
                 list.appendChild(li)
-                
-                
+
+
                 //  delete button
-               
+
                 let btn = document.createElement("button")
-                 btn.id = `${data[i].id}delbutton`
+                btn.id = `${data[i].id}delbutton`
                 btn.innerHTML = `Delete`
                 li.appendChild(btn)
-                btn.addEventListener('click',(e)=>{
+                btn.addEventListener('click', (e) => {
                     e.preventDefault()
-                    deleteMovie(e.target.id)// removes element from db.json file
-                    const parentElement = btn.parentElement// removes element locally on user browser
-                    parentElement.remove();
+                    deleteMovie(e.target.parentElement.id)// removes parent element(movie) from db.json file
+                    const parentElement = btn.parentElement
+                    parentElement.remove();// removes parent(movie) element locally on user browser
 
                 })
             }
@@ -55,7 +52,7 @@ function getMovies() {
 }
 
 function getMovieInfo(i) {
-    // console.log(i)
+    
     current_id = Number(i)
     fetch(`http://localhost:3000/films/${i}`)
         .then(resp => resp.json())
@@ -69,18 +66,13 @@ function getMovieInfo(i) {
             remainingTickets.innerHTML = data.capacity - data.tickets_sold
             tickets_sold = data.tickets_sold
             remaining = Number(remainingTickets.textContent)
+            iszero()
         }
         )
 }
-let movob;
-
-
-
 
 buybtn.addEventListener('click', (e) => {
     e.preventDefault()
-
-    //buytickets(current_id)
     buytickets()
 }
 
@@ -99,11 +91,12 @@ function buytickets() {
             })
         })
             .then(data => {
-                remaining--; 
+                remaining--;
                 document.getElementById("ticket-num").innerHTML = `${remaining}`;//update tickets remaining on the browser
                 post()
-            })}
-    else if(remaining == 1){
+            })
+    }
+    else if (remaining == 1) {
         fetch(`http://localhost:3000/films/${current_id}`, {
             method: 'PATCH',
             headers: {
@@ -111,34 +104,22 @@ function buytickets() {
                 'Accept': 'application/json',
             },
             body: JSON.stringify({
-                tickets_sold: tickets_sold + 1 
+                tickets_sold: tickets_sold + 1
             })
         })
             .then(data => {
-                remaining--; 
+                remaining--;
                 document.getElementById("ticket-num").innerHTML = `${remaining}`;
-                document.getElementById("buy-ticket").innerHTML = 'SOLD OUT!'; 
-        currentMovie = document.getElementById(`${current_id}`)
-        currentMovie.classList.add('sold-out')
-        post()
+                document.getElementById("buy-ticket").innerHTML = 'SOLD OUT!';
+                currentMovie = document.getElementById(`${current_id}`)
+                currentMovie.classList.add('sold-out')
+                post()
             })
     }
-        else{
-            document.getElementById("ticket-num").innerHTML = `${remaining}`;
-            document.getElementById("buy-ticket").innerHTML = 'SOLD OUT!'; 
-            currentMovie = document.getElementById(`${current_id}`)
-            currentMovie.classList.add('sold-out')
-        }
-     
-    // else if(remaining<1 ){
-    //     document.getElementById("buy-ticket").innerHTML = 'SOLD OUT!'; 
-    //     currentMovie = document.getElementById(`${current_id}`)
-    //     currentMovie.classList.add('sold-out')
-
-    // }
+   
 }
-    
-function post(){
+
+function post() {
     fetch(`http://localhost:3000/tickets`, {
         method: 'POST',
         headers: {
@@ -152,10 +133,9 @@ function post(){
     })
 }
 
-function deleteMovie(buttonid){
-    buttonnumber = buttonid.charAt(0)
-    console.log(buttonnumber)
-    fetch(`http://localhost:3000/films/${buttonnumber}`,{
+function deleteMovie(buttonid) {
+    
+    fetch(`http://localhost:3000/films/${buttonid}`, {
         method: 'DELETE',
         headers: {
             'Content-Type': 'application/json',
@@ -163,15 +143,18 @@ function deleteMovie(buttonid){
         },
     })
 }
-function iszero(){
-if(remaining == 0){
-    document.getElementById("buy-ticket").innerHTML = 'SOLD OUT!'; 
-    currentMovie = document.getElementById(`${current_id}`)
-    currentMovie.classList.add('sold-out')
-    console.log("zero")
-    soldout()
-}}
 
-function soldout(){
-    document.getElementById("buy-ticket").innerHTML = 'SOLD OUT!';
+function iszero() {
+    if (remaining == 0) {
+        document.getElementById("buy-ticket").innerHTML = 'SOLD OUT!';
+        currentMovie = document.getElementById(`${current_id}`)
+        currentMovie.classList.add('sold-out')
+        console.log("zero")
+       
+    }
+
+    else{
+        document.getElementById("buy-ticket").innerHTML = 'Buy Ticket'
+    }
 }
+
